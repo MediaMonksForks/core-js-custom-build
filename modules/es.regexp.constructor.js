@@ -10,10 +10,11 @@ var getFlags = require('../internals/regexp-flags');
 var stickyHelpers = require('../internals/regexp-sticky-helpers');
 var redefine = require('../internals/redefine');
 var fails = require('../internals/fails');
-var setInternalState = require('../internals/internal-state').set;
 var setSpecies = require('../internals/set-species');
 var wellKnownSymbol = require('../internals/well-known-symbol');
+var InternalStateModule = require('../internals/internal-state');
 
+var setInternalState = InternalStateModule.set;
 var MATCH = wellKnownSymbol('match');
 var NativeRegExp = global.RegExp;
 var RegExpPrototype = NativeRegExp.prototype;
@@ -25,7 +26,7 @@ var CORRECT_NEW = new NativeRegExp(re1) !== re1;
 
 var UNSUPPORTED_Y = stickyHelpers.UNSUPPORTED_Y;
 
-var FORCED = isForced('RegExp', DESCRIPTORS && (!CORRECT_NEW || UNSUPPORTED_Y || fails(function () {
+var FORCED = DESCRIPTORS && isForced('RegExp', (!CORRECT_NEW || UNSUPPORTED_Y || fails(function () {
   re2[MATCH] = false;
   // RegExp constructor can alter flags and IsRegExp works correct with @@match
   return NativeRegExp(re1) != re1 || NativeRegExp(re2) == re2 || NativeRegExp(re1, 'i') != '/a/i';

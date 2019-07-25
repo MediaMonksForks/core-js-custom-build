@@ -1,4 +1,5 @@
 'use strict';
+var fixRegExpWellKnownSymbolLogic = require('../internals/fix-regexp-well-known-symbol-logic');
 var anObject = require('../internals/an-object');
 var toObject = require('../internals/to-object');
 var toLength = require('../internals/to-length');
@@ -18,31 +19,28 @@ var maybeToString = function (it) {
 };
 
 // @@replace logic
-require('../internals/fix-regexp-well-known-symbol-logic')(
-  'replace',
-  2,
-  function (REPLACE, nativeReplace, maybeCallNative, reason) {
-    return [
-      // `String.prototype.replace` method
-      // https://tc39.github.io/ecma262/#sec-string.prototype.replace
-      function replace(searchValue, replaceValue) {
-        var O = requireObjectCoercible(this);
-        var replacer = searchValue == undefined ? undefined : searchValue[REPLACE];
-        return replacer !== undefined
-          ? replacer.call(searchValue, O, replaceValue)
-          : nativeReplace.call(String(O), searchValue, replaceValue);
-      },
-      // `RegExp.prototype[@@replace]` method
-      // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@replace
-      function (regexp, replaceValue) {
-        if (
-          reason.REPLACE_KEEPS_$0 || (
-            typeof replaceValue === 'string' && replaceValue.indexOf('$0') === -1
-          )
-        ) {
-          var res = maybeCallNative(nativeReplace, regexp, this, replaceValue);
-          if (res.done) return res.value;
-        }
+fixRegExpWellKnownSymbolLogic('replace', 2, function (REPLACE, nativeReplace, maybeCallNative, reason) {
+  return [
+    // `String.prototype.replace` method
+    // https://tc39.github.io/ecma262/#sec-string.prototype.replace
+    function replace(searchValue, replaceValue) {
+      var O = requireObjectCoercible(this);
+      var replacer = searchValue == undefined ? undefined : searchValue[REPLACE];
+      return replacer !== undefined
+        ? replacer.call(searchValue, O, replaceValue)
+        : nativeReplace.call(String(O), searchValue, replaceValue);
+    },
+    // `RegExp.prototype[@@replace]` method
+    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@replace
+    function (regexp, replaceValue) {
+      if (
+        reason.REPLACE_KEEPS_$0 || (
+          typeof replaceValue === 'string' && replaceValue.indexOf('$0') === -1
+        )
+      ) {
+        var res = maybeCallNative(nativeReplace, regexp, this, replaceValue);
+        if (res.done) return res.value;
+      }
 
       var rx = anObject(regexp);
       var S = String(this);

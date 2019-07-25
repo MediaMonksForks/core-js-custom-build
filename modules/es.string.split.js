@@ -85,43 +85,42 @@ fixRegExpWellKnownSymbolLogic('split', 2, function (SPLIT, nativeSplit, maybeCal
       var res = maybeCallNative(internalSplit, regexp, this, limit, internalSplit !== nativeSplit);
       if (res.done) return res.value;
 
-        var rx = anObject(regexp);
-        var S = String(this);
+      var rx = anObject(regexp);
+      var S = String(this);
 
-        var unicodeMatching = rx.unicode;
-        var splitter = stickyHelpers.createStickyRegExp(
-          rx,
-          (rx.ignoreCase ? 'i' : '') + (rx.multiline ? 'm' : '') + (unicodeMatching ? 'u' : '')
-        );
+      var unicodeMatching = rx.unicode;
+      var splitter = stickyHelpers.createStickyRegExp(
+        rx,
+        (rx.ignoreCase ? 'i' : '') + (rx.multiline ? 'm' : '') + (unicodeMatching ? 'u' : '')
+      );
 
-        var lim = limit === undefined ? MAX_UINT32 : limit >>> 0;
-        if (lim === 0) return [];
-        if (S.length === 0) return callRegExpExec(splitter, S) === null ? [S] : [];
-        var p = 0;
-        var q = 0;
-        var A = [];
-        while (q < S.length) {
-          splitter.lastIndex = q;
-          var z = callRegExpExec(splitter, S);
-          var e;
-          if (
-            z === null ||
-            (e = min(toLength(splitter.lastIndex), S.length)) === p
-          ) {
-            q = advanceStringIndex(S, q, unicodeMatching);
-          } else {
-            A.push(S.slice(p, q));
+      var lim = limit === undefined ? MAX_UINT32 : limit >>> 0;
+      if (lim === 0) return [];
+      if (S.length === 0) return callRegExpExec(splitter, S) === null ? [S] : [];
+      var p = 0;
+      var q = 0;
+      var A = [];
+      while (q < S.length) {
+        splitter.lastIndex = q;
+        var z = callRegExpExec(splitter, S);
+        var e;
+        if (
+          z === null ||
+          (e = min(toLength(splitter.lastIndex), S.length)) === p
+        ) {
+          q = advanceStringIndex(S, q, unicodeMatching);
+        } else {
+          A.push(S.slice(p, q));
+          if (A.length === lim) return A;
+          for (var i = 1; i <= z.length - 1; i++) {
+            A.push(z[i]);
             if (A.length === lim) return A;
-            for (var i = 1; i <= z.length - 1; i++) {
-              A.push(z[i]);
-              if (A.length === lim) return A;
-            }
-            q = p = e;
           }
+          q = p = e;
         }
-        A.push(S.slice(p));
-        return A;
       }
-    ];
-  }
-);
+      A.push(S.slice(p));
+      return A;
+    }
+  ];
+});
